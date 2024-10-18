@@ -2,14 +2,25 @@
 import { useEffect, useState } from "react";
 import { getNews, News } from "./services/news";
 import Link from "next/link";
+import { getNewsLatest, NewsLatest } from "./services/newsLatest";
 
 export default function NewsPage() {
   const [news, setNews] = useState<News[]>([]);
+  const [newsLatest, setNewsLatest] = useState<NewsLatest[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   useEffect(() => {
     getNews()
       .then((data) => setNews(data.endpoints))
+      .catch((err) => setError(err.message));
+  }, []);
+
+  useEffect(() => {
+    getNewsLatest("antara")
+      .then((data) => {
+        console.log("Fetched latest news:", data);
+        setNewsLatest(data.endpoints); // Sesuaikan dengan struktur API yang sebenarnya
+      })
       .catch((err) => setError(err.message));
   }, []);
 
@@ -74,13 +85,25 @@ export default function NewsPage() {
             </div>
             <div className="grid grid-cols-2 gap-10 mt-10">
               <div>
-                <div
-                  className="hero min-h-80 rounded-md"
-                  style={{
-                    backgroundImage: "url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp)",
-                  }}>
-                  <div className="hero-overlay"></div>
-                </div>
+                {newsLatest.length > 0 &&
+                  newsLatest[0].data.posts.map((latestPost) => (
+                    <div
+                      key={latestPost.title}
+                      className="hero rounded-md relative mb-12"
+                      style={{
+                        backgroundImage: `url(${latestPost.thumbnail})`,
+                        minHeight: "500px",
+                      }}>
+                      <div className="hero-overlay"></div>
+                      <div className="hero-content text-neutral-content absolute top-0 left-0 p-5">
+                        <div className="max-w-md">
+                          <h1 className="mb-5 text-5xl font-bold">{latestPost.title}</h1>
+                          <p className="mb-5">{latestPost.description}</p>
+                          <button className="btn btn-primary">Selengkapnya</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
               <div>
                 <div
